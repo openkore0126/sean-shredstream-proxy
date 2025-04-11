@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message ParsedInstruction {
+  string program_id = 1;
+  string data = 2;
+}
+
+message ParsedTransaction {
+  string signature = 1;
+  repeated string accounts = 2;
+  repeated ParsedInstruction instructions = 3;
+}
+
+message ParsedEntry {
+  uint64 slot = 1;
+  string entry_hash = 2;
+  repeated ParsedTransaction transactions = 3;
+}
