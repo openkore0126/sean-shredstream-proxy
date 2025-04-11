@@ -14,6 +14,9 @@ use log::{debug, info};
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender};
 use tonic::codegen::tokio_stream::wrappers::ReceiverStream;
 
+// 新增 import
+use crate::parser::{parse_entry, ParsedEntry};
+
 #[derive(Debug)]
 pub struct ShredstreamProxyService {
     entry_sender: Arc<Sender<PbEntry>>,
@@ -51,9 +54,10 @@ pub fn start_server_thread(
         }
     })
 }
+
 #[tonic::async_trait]
 impl ShredstreamProxy for ShredstreamProxyService {
-    type SubscribeEntriesStream = ReceiverStream<Result<PbEntry, tonic::Status>>;
+    type SubscribeEntriesStream = ReceiverStream<Result<ParsedEntry, tonic::Status>>;
 
     async fn subscribe_entries(
         &self,
@@ -64,7 +68,10 @@ impl ShredstreamProxy for ShredstreamProxyService {
 
         tokio::spawn(async move {
             while let Ok(entry) = entry_receiver.recv().await {
-                match tx.send(Ok(entry)).await {
+                // 調用解析邏輯
+                let parsed_entry = parse_entry(entry);
+
+                match tx.send(Ok(parsed_entry)).await {
                     Ok(_) => (),
                     Err(_e) => {
                         debug!("client disconnected");
