@@ -1,4 +1,10 @@
 use tonic_build::configure;
+tonic_build::configure()
+    .compile(
+        &["proto/parsed_entry.proto"],
+        &["proto"],
+    )
+    .unwrap();
 
 fn main() {
     const PROTOC_ENVAR: &str = "PROTOC";
